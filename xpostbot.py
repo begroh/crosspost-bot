@@ -1,6 +1,11 @@
 import praw
 import config
 
+import pprint
+
+orig_sub = ''
+xpost_sub = ''
+
 def bot_login():
     r = praw.Reddit(username = config.username,
                     password = config.password,
@@ -10,8 +15,11 @@ def bot_login():
     return r
 
 def run(r):
-    for log in r.subreddit('gringie_box').mod.log():
-        print ("Mod: {}, Subreddit: {}".format(log.mod, log.subreddit))
+    for log in r.subreddit(orig_sub).mod.log(action='removelink'):
+        link_id = log.target_fullname[3:]
+        title = log.target_title
+        body = log.target_body
+        r.subreddit(xpost_sub).submit(title, body)
 
 # TODO Finds new deletions in the mod log
 def parse_mod_log():
