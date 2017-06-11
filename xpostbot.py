@@ -29,7 +29,12 @@ def run(r):
             post_id = log.target_fullname
             title = log.target_title
             body = log.target_body
-            
+
+            # Because of a praw bug, if the text body is None and the url is
+            # None the submission will fail
+            if body is None:
+                body = ''
+
             # If the post is older than a specified amount of time, ignore it
             # Also means you're done
             if post_time_out_of_range(log):
@@ -40,9 +45,8 @@ def run(r):
             if is_present(conn, c, post_id):
                 break
 
+            r.subreddit(xpost_sub).submit(title, selftext=body)
             add_to_db(conn, c, post_id, title)
-
-            # r.subreddit(xpost_sub).submit(title, body)
             #time.sleep(60) # Don't want it spamming so only do this once a minute
 
         conn.close()
