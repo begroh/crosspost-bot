@@ -17,7 +17,6 @@ def bot_login():
                     user_agent = "A bot for crossposting deleted threads.")
     return r
 
-# TODO Only do posts from past [time period]
 def run(r):
     while True:
         scan_removed_posts(r)
@@ -28,6 +27,7 @@ def run(r):
         return
         #time.sleep(1800) # go through the log once every half hour
 
+# TODO Only do posts from past [time period]
 def scan_removed_posts(r):
     for log in r.subreddit(orig_sub).mod.log(action='removelink'):
         post_id = log.target_fullname
@@ -39,15 +39,8 @@ def scan_removed_posts(r):
         if body is None:
             body = ''
 
-        # If the post has already been processored or if it's older than a
-        # specified amount of time, ignore it
-        # Also means you're done
-        if post_already_present(log) or post_time_out_of_range(log):
-            break
-
-        # If the item has already been checked, we've gone through
-        # all the new log entries
-        if is_present(title, post_id):
+        # If post is older than the bot's time between checks you're done
+        if post_time_out_of_range(log):
             break
 
         r.subreddit(xpost_sub).submit(title, selftext=body)
