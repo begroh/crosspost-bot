@@ -39,11 +39,15 @@ def scan_removed_posts(r):
             break
 
         r.subreddit(xpost_sub).submit(title, selftext=body)
-        # time.sleep(10) # Not sure if I need to wait between posts?
 
 # TODO Finds mod comment with stated reason for removal
-def get_removal_reason():
+def get_removal_reason(r, sub_id):
     pass
+    submission = r.submission(id=sub_id)
+    for top_level_comment in submission.comments:
+
+        #if top_level_comment is distinguished, return the body of the comment
+    return None
 
 def post_time_out_of_range(log):
     if (time.time() - log.created_utc > max_time):
