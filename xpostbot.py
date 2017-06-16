@@ -24,6 +24,7 @@ def run(r):
 
 # TODO Only do posts from past [time period]
 def scan_removed_posts(r):
+    posts_removed = []
     for log in r.subreddit(orig_sub).mod.log(action='removelink'):
         post_id = log.target_fullname
         title = log.target_title
@@ -38,14 +39,24 @@ def scan_removed_posts(r):
         if post_time_out_of_range(log):
             break
 
+        # In the case of a post being removed multiple times, ignore the 2nd
+        if post_id in posts_removed:
+            print ("found this post")
+            continue
+
+        removal_comment = get_removal_reason(r, post_id)
+
+        posts_removed.append(post_id)
         r.subreddit(xpost_sub).submit(title, selftext=body)
 
 # TODO Finds mod comment with stated reason for removal
-def get_removal_reason(r, sub_id):
-    pass
-    submission = r.submission(id=sub_id)
+def get_removal_reason(r, post_id):
+    return None
+    submission = r.submission(id=post_id)
+    submission.comment_sort = 'new' # Mod reason for removal should always be newest
     for top_level_comment in submission.comments:
-
+        return "Comment found"
+        # pprint.pprint(vars(top_level_comment))
         #if top_level_comment is distinguished, return the body of the comment
     return None
 
