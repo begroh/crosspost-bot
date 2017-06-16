@@ -1,5 +1,6 @@
 import os
 import praw
+from praw.models import MoreComments
 import time
 from datetime import datetime
 
@@ -41,29 +42,34 @@ def scan_removed_posts(r):
 
         # In the case of a post being removed multiple times, ignore the 2nd
         if post_id in posts_removed:
-            print ("found this post")
+            print ('Post "' + title + '" was already removed, skipping')
             continue
 
-        removal_comment = get_removal_reason(r, post_id)
-
         posts_removed.append(post_id)
-        r.subreddit(xpost_sub).submit(title, selftext=body)
+        submission_id = r.subreddit(xpost_sub).submit(title, selftext=body)
+
+        removal_comment = get_removal_reason(r, post_id[3:])
+        if removal_comment is not None:
+            #pprint.pprint(vars(r.submission(id=submission_id).add_comment(removal_comment))
+            comment = r.submission(id=submission_id).reply(removal_comment)
+            comment.mod.distinguish()
 
 # TODO Finds mod comment with stated reason for removal
 def get_removal_reason(r, post_id):
-    return None
     submission = r.submission(id=post_id)
     submission.comment_sort = 'new' # Mod reason for removal should always be newest
+    submission.comments.replace_more(limit=0)
+
     for top_level_comment in submission.comments:
-        return "Comment found"
-        # pprint.pprint(vars(top_level_comment))
-        #if top_level_comment is distinguished, return the body of the comment
+        if top_level_comment.distinguished == 'moderator':
+            return top_level_comment.body
     return None
 
 def post_time_out_of_range(log):
     if (time.time() - log.created_utc > max_time):
         print ("Thread too old")
         return True
+    return False
 
 r = bot_login()
 run(r)
