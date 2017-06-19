@@ -23,10 +23,14 @@ def run(r):
 
     # Can add more functionality here as necessary
 
-# TODO Only do posts from past [time period]
+# Only do posts from past [max_time]
 def scan_removed_posts(r):
     posts_removed = []
     for log in r.subreddit(orig_sub).mod.log(action='removelink'):
+        # Don't auto post AutoMod removals, wait for official mod removal
+        if log._mod == 'AutoModerator':
+            continue
+
         post_id = log.target_fullname
         title = log.target_title
         body = log.target_body
@@ -50,11 +54,11 @@ def scan_removed_posts(r):
 
         removal_comment = get_removal_reason(r, post_id[3:])
         if removal_comment is not None:
-            #pprint.pprint(vars(r.submission(id=submission_id).add_comment(removal_comment))
             comment = r.submission(id=submission_id).reply(removal_comment)
             comment.mod.distinguish()
 
-# TODO Finds mod comment with stated reason for removal
+""" Crosspost helper functions """
+# Finds mod comment with stated reason for removal
 def get_removal_reason(r, post_id):
     submission = r.submission(id=post_id)
     submission.comment_sort = 'new' # Mod reason for removal should always be newest
@@ -70,6 +74,13 @@ def post_time_out_of_range(log):
         print ("Thread too old")
         return True
     return False
+
+""" Functions to scan for deck winrates in the title and body """
+def scan_title(r, title_string):
+    pass
+
+def scan_body(r, body_text):
+    pass
 
 r = bot_login()
 run(r)
